@@ -1,0 +1,19 @@
+{
+  "name": "msgme",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mug3n96/msgme.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mug3n96/msgme/issues"
+  },
+  "homepage": "https://github.com/Mug3n96/msgme#readme"
+}
