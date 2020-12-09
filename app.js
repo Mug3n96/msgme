@@ -8,16 +8,18 @@ require("dotenv").config();
 const app = express();
 
 const {
+  ORIGIN,
   PORT = 5000,
   MAIL,
   MAIL_PW,
   SMTP_HOST,
   SMTP_PORT,
   MAILBOX,
+  SERVICE,
 } = process.env;
 
 const corsOptions = {
-  origin: "http://127.0.0.1:3030",
+  origin: ORIGIN,
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
@@ -45,22 +47,23 @@ app.post("/", (req, res) => {
   }
 
   // pass payload to nodemailer and send mail
-  sendMail(payload);
+  // with response object
+  sendMail(payload, res);
 });
 
 app.listen(PORT, () => {
   console.log(`Process running on Port ${PORT}`);
 });
 
-async function sendMail(payload) {
+async function sendMail(payload, res) {
   // email subject
   const subject = `msgme Message from <${payload.email}>`;
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: false,
+    // host: SMTP_HOST,
+    // port: SMTP_PORT,
+    service: SERVICE,
     auth: {
       user: MAIL, // mail
       pass: MAIL_PW, // email password
@@ -68,11 +71,10 @@ async function sendMail(payload) {
   });
 
   const mail = {
-    from: `"Heinrich Root" <${MAIL}>`, // sender address
+    from: `${payload.name} <${payload.email}>`, // sender address
     to: MAILBOX, // list of receivers
     subject, // Subject line
-    text: payload.message, // plain text body
-    html: "<b>Hello world?</b>", // html body
+    text: payload.message
   };
 
   console.log(mail);
@@ -80,6 +82,10 @@ async function sendMail(payload) {
   try {
     // send mail with defined transport object
     let info = await transporter.sendMail(mail);
+    res.status(200).send({
+      error: "false",
+      msg: {},
+    });
 
     console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
@@ -89,5 +95,9 @@ async function sendMail(payload) {
     // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
   } catch (e) {
     console.error(e);
+    res.status(404).send({
+      error: "true",
+      errorType: "transporter failed",
+    });
   }
 }
