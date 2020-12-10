@@ -53,6 +53,7 @@ app.post("/", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Process running on Port ${PORT}`);
+  console.log(`CORS allowing ${ORIGIN}`);
 });
 
 async function sendMail(payload, res) {
