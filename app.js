@@ -10,12 +10,11 @@ const app = express();
 const {
   ORIGIN,
   PORT = 5000,
-  MAIL,
+  MAIL_ORIGIN,
   MAIL_PW,
   SMTP_HOST,
   SMTP_PORT,
   MAILBOX,
-  SERVICE,
 } = process.env;
 
 const corsOptions = {
@@ -62,12 +61,16 @@ async function sendMail(payload, res) {
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
-    // host: SMTP_HOST,
-    // port: SMTP_PORT,
-    service: SERVICE,
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: false,
+    requireTLS: true,
     auth: {
-      user: MAIL, // mail
+      user: MAIL_ORIGIN, // mail
       pass: MAIL_PW, // email password
+    },
+    tls: {
+      ciphers: "SSLv3",
     },
   });
 
@@ -75,7 +78,7 @@ async function sendMail(payload, res) {
     from: `${payload.name} <${payload.email}>`, // sender address
     to: MAILBOX, // list of receivers
     subject, // Subject line
-    text: payload.message
+    text: payload.message,
   };
 
   console.log(mail);
@@ -85,7 +88,7 @@ async function sendMail(payload, res) {
     let info = await transporter.sendMail(mail);
     res.status(200).send({
       error: "false",
-      msg: {},
+      msg: payload.message,
     });
 
     console.log("Message sent: %s", info.messageId);
