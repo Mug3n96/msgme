@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const sanitizeHtml = require("sanitize-html");
 const nodemailer = require("nodemailer");
+const hbs = require("nodemailer-express-handlebars");
+const path = require("path");
 
 require("dotenv").config();
 
@@ -31,11 +33,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.post("/", (req, res) => {
-  const { name = null, email = null, message = null } = req.body;
+  const { name = null, email = null, message = null, subject = null } = req.body;
 
   const payload = {
     name,
     email,
+    subject,
     message,
   };
 
@@ -60,7 +63,7 @@ async function sendMail(payload, res) {
   const subject = `msgme Message from <${payload.email}>`;
 
   // create reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: false,
@@ -74,18 +77,36 @@ async function sendMail(payload, res) {
     },
   });
 
-  const mail = {
+  const handlebarOptions = {
+    viewEngine: {
+      extName: ".hbs",
+      partialsDir: path.resolve("./views"),
+      defaultLayout: false
+    },
+    viewPath: path.resolve("./views"),
+    extName: ".hbs"
+  }
+
+  transporter.use('compile', hbs(handlebarOptions));
+
+  const mailConfig = {
     from: `${payload.name} <${payload.email}>`, // sender address
     to: MAILBOX, // list of receivers
     subject, // Subject line
-    text: payload.message,
+    template: 'default',
+    context: {
+      from: payload.email,
+      who: payload.name,
+      subject: payload.subject,
+      message: payload.message
+    }
   };
 
-  console.log(mail);
+  console.log(mailConfig);
 
   try {
     // send mail with defined transport object
-    let info = await transporter.sendMail(mail);
+    let info = await transporter.sendMail(mailConfig);
     res.status(200).send({
       error: "false",
       msg: payload.message,
