@@ -92,6 +92,7 @@ async function sendMail(payload, res) {
   const mailConfig = {
     from: `${payload.name} <${payload.email}>`, // sender address
     to: MAILBOX, // list of receivers
+    replyTo: payload.email,
     subject, // Subject line
     template: 'default',
     context: {
